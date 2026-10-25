@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, UserRound, Salad, Sparkles, MapPin, Star, Zap, ShieldCheck, Bell } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Reveal from '../components/Reveal';
+import { getCentreImage } from '../lib/centreImages';
 
 const features = [
   { icon: Building2, title: 'Find fitness centres', text: 'Compare gyms by location, amenities and membership plans.', to: '/centres', span: 'wide' },
@@ -87,7 +88,7 @@ export default function Home() {
             <Reveal key={c.id} delay={i * 100}>
               <Link to={`/centres/${c.id}`} className="card" onMouseMove={onMove}>
                 <span className="badge lime featured-tag">★ {c.rating}</span>
-                <div className="cover" />
+                <img className="cover" src={getCentreImage(c)} alt={c.name} loading="lazy" />
                 <h3>{c.name}</h3>
                 <p className="muted" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <MapPin size={16} /> {c.city}

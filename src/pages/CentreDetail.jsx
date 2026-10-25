@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { startCheckout } from '../lib/payments';
 import { inr } from '../lib/format';
 import Reveal from '../components/Reveal';
+import { getCentreImage } from '../lib/centreImages';
 
 export default function CentreDetail() {
   const { id } = useParams();
@@ -42,7 +43,8 @@ export default function CentreDetail() {
     <div className="container section" style={{ paddingTop: 20 }}>
       <Reveal>
         <div className="card card-lg" style={{ marginBottom: 50, padding: 0 }}>
-          <div className="cover" style={{ height: 300, margin: 0, borderRadius: 'var(--radius) var(--radius) 0 0' }} />
+          <img className="cover" src={getCentreImage(centre)} alt={centre.name} loading="lazy"
+            style={{ height: 300, margin: 0, borderRadius: 'var(--radius) var(--radius) 0 0' }} />
           <div style={{ padding: 40 }}>
             <span className="eyebrow">Fitness centre</span>
             <h1 style={{ fontSize: 'clamp(2.2rem, 5vw, 3.4rem)' }}>{centre.name}</h1>

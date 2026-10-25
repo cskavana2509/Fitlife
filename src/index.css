@@ -295,9 +295,9 @@ tr:hover td { background: rgba(255,255,255,.025); }
 @media (max-width: 900px) {
   .nav-links { display: none; }
   .nav-burger { display: grid; }
-  .nav-mobile { display: grid; gap: 6px; padding: 10px 14px 16px; margin-top: 8px; border-top: 1px solid var(--line); }
-  .nav-mobile.open { display: grid; }
-  .nav-mobile .nav-link { border-radius: 14px; }
+  .nav-mobile { display: none; gap: 4px; padding: 10px 14px 16px; margin-top: 8px; border-top: 1px solid var(--line); }
+  .nav-mobile.open { display: flex; flex-wrap: wrap; justify-content: center; }
+  .nav-mobile .nav-link { border-radius: 14px; padding: 8px 10px; }
   .auth-split { grid-template-columns: 1fr; }
   .auth-brand { display: none; }
 }
@@ -310,4 +310,59 @@ tr:hover td { background: rgba(255,255,255,.025); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .reveal { opacity: 1; transform: none; }
+}
+
+/* ---------- Responsive depth and interaction polish ---------- */
+.card {
+  transform-style: preserve-3d;
+}
+.card > *:not(.featured-tag) { transform: translateZ(14px); }
+.card > .featured-tag { transform: translateZ(24px); }
+.card.is-tilting { will-change: transform; transition: transform .08s linear, border-color .4s, box-shadow .4s; }
+.card .cover { transition: transform .55s cubic-bezier(.2,.7,.2,1), filter .55s; }
+.card .cover { transform: translateZ(22px); }
+.icon-tile { box-shadow: 0 10px 28px rgba(139,92,246,.14), inset 0 1px rgba(255,255,255,.12); }
+.nav { transition: background .3s, border-color .3s, box-shadow .3s; }
+.nav:hover { background: rgba(12,14,22,.82); border-color: rgba(255,255,255,.14); }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--lime);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    transform: perspective(1100px) rotateX(var(--tilt-y, 0deg)) rotateY(var(--tilt-x, 0deg)) translateY(-6px);
+    box-shadow: 0 30px 70px rgba(0,0,0,.48), 0 12px 34px rgba(139,92,246,.12);
+  }
+  .card:hover .cover { transform: translateZ(34px) scale(1.025); filter: saturate(1.12); }
+}
+
+@media (max-width: 900px) {
+  .section { padding: 72px 0; }
+  .hero { min-height: 76vh; }
+  .hero-inner { max-width: 700px; }
+}
+@media (max-width: 640px) {
+  .container { width: min(100% - 32px, 1200px); }
+  .section { padding: 56px 0; }
+  .hero { min-height: auto; padding: 78px 0 56px; }
+  .hero h1 { font-size: clamp(2.55rem, 12vw, 4rem); }
+  .hero p { font-size: 1rem; }
+  .stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 40px; }
+  .stats strong { font-size: 1.65rem; }
+  .toolbar, .toolbar > .row { width: 100%; }
+  .search-wrap { min-width: 100%; }
+  .toolbar > .row { gap: 8px; }
+  .chip { padding: 8px 13px; }
+  .grid > .reveal[style*="grid-column"] { grid-column: auto !important; }
+  .card { padding: 22px; }
+  .card-lg { padding: 26px; }
+  .auth-card { padding: 28px 22px; }
+  .footer-inner { justify-content: center; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card, .card:hover { transform: none !important; }
+  .card > *, .card > .featured-tag { transform: none !important; }
+  .card { will-change: auto; }
 }

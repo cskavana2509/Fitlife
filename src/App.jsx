@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -18,6 +19,51 @@ import CoordinatorDashboard from './pages/CoordinatorDashboard';
 
 export default function App() {
   const { pathname } = useLocation();
+  const activeCard = useRef(null);
+
+  useEffect(() => {
+    activeCard.current = null;
+  }, [pathname]);
+
+  const handleCardPointerMove = (event) => {
+    if (event.pointerType === 'touch' || !(event.target instanceof Element)) return;
+
+    const card = event.target.closest('.card');
+    if (!card) return;
+
+    if (activeCard.current && activeCard.current !== card) {
+      activeCard.current.style.removeProperty('--tilt-x');
+      activeCard.current.style.removeProperty('--tilt-y');
+      activeCard.current.classList.remove('is-tilting');
+    }
+
+    const bounds = card.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width;
+    const y = (event.clientY - bounds.top) / bounds.height;
+
+    card.style.setProperty('--tilt-x', `${(x - 0.5) * 7}deg`);
+    card.style.setProperty('--tilt-y', `${(0.5 - y) * 7}deg`);
+    card.style.setProperty('--mx', `${x * bounds.width}px`);
+    card.style.setProperty('--my', `${y * bounds.height}px`);
+    card.classList.add('is-tilting');
+    activeCard.current = card;
+  };
+
+  const handleCardPointerOut = (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const card = event.target.closest('.card');
+    const nextCard = event.relatedTarget instanceof Element
+      ? event.relatedTarget.closest('.card')
+      : null;
+
+    if (!card || card === nextCard) return;
+
+    card.style.removeProperty('--tilt-x');
+    card.style.removeProperty('--tilt-y');
+    card.classList.remove('is-tilting');
+    if (activeCard.current === card) activeCard.current = null;
+  };
 
   return (
     <>
@@ -25,7 +71,12 @@ export default function App() {
       <div className="grain" />
       <Navbar />
       {/* key=pathname replays the enter animation on every route change */}
-      <main key={pathname} className="page-enter">
+      <main
+        key={pathname}
+        className="page-enter"
+        onPointerMove={handleCardPointerMove}
+        onPointerOut={handleCardPointerOut}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/centres" element={<Centres />} />

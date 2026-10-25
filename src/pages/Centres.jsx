@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Star, Search as SearchIcon } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Reveal from '../components/Reveal';
+import { getCentreImage } from '../lib/centreImages';
 
 export default function Centres() {
   const [centres, setCentres] = useState([]);
@@ -52,7 +53,7 @@ export default function Centres() {
             <Reveal key={c.id} delay={(i % 3) * 90}>
               <Link to={`/centres/${c.id}`} className="card">
                 <span className="badge lime featured-tag"><Star size={12} fill="currentColor" /> {c.rating}</span>
-                {c.image_url ? <img className="cover" src={c.image_url} alt={c.name} /> : <div className="cover" />}
+                <img className="cover" src={getCentreImage(c)} alt={c.name} loading="lazy" />
                 <h3>{c.name}</h3>
                 <p className="muted" style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <MapPin size={16} /> {c.address}, {c.city}
