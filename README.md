@@ -1,6 +1,6 @@
 # FitLife – Fitness Centre Management & Booking Platform
 
-React (Vite) · Supabase (Auth, Postgres, RLS, Edge Functions) · Razorpay · Resend · Twilio · Anthropic · Vercel
+React (Vite) · Supabase (Auth, Postgres, RLS, Edge Functions) · Razorpay · Resend · Twilio · Gemini · Vercel
 
 ## Roles
 | Role | How to create | What they can do |
