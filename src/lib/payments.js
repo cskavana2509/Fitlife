@@ -31,7 +31,7 @@ export async function startCheckout({ kind, itemId, user, onSuccess, onError }) 
     description: data.description,
     order_id: data.order_id,
     prefill: { name: user?.user_metadata?.full_name, email: user?.email },
-    theme: { color: '#c6ff3d' },
+    theme: { color: '#0f766e' },
     handler: async (response) => {
       const { data: verified, error: vErr } = await supabase.functions.invoke('verify-payment', {
         body: response,

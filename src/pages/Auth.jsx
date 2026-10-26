@@ -62,8 +62,8 @@ export default function Auth({ mode }) {
           {isSignup ? <>Start your <span className="gradient-text">transformation</span>.</> : <>Pick up where you <span className="gradient-text">left off</span>.</>}
         </h2>
         <div className="grid" style={{ gridTemplateColumns: '1fr', gap: 14, maxWidth: 420 }}>
-          <div className="card" style={{ padding: 20 }}><Building2 size={20} color="#c6ff3d" /> <strong>Centres near you</strong><p className="muted">Compare memberships and amenities.</p></div>
-          <div className="card" style={{ padding: 20 }}><UserRound size={20} color="#22d3ee" /> <strong>Book a trainer</strong><p className="muted">Pick a slot and pay securely.</p></div>
+          <div className="card" style={{ padding: 20 }}><Building2 size={20} color="var(--lime)" /> <strong>Centres near you</strong><p className="muted">Compare memberships and amenities.</p></div>
+          <div className="card" style={{ padding: 20 }}><UserRound size={20} color="var(--lime)" /> <strong>Book a trainer</strong><p className="muted">Pick a slot and pay securely.</p></div>
         </div>
       </div>
 

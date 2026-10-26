@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Building2, UserRound, Salad, Sparkles, MapPin, Star, Zap, ShieldCheck, Bell } from 'lucide-react';
+import { ArrowRight, Building2, UserRound, Salad, Sparkles, MapPin, Zap, ShieldCheck, Bell } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Reveal from '../components/Reveal';
 import { getCentreImage } from '../lib/centreImages';
+import heroImage from '../assets/centres/iron-forge.jpg';
 
 const features = [
   { icon: Building2, title: 'Find fitness centres', text: 'Compare gyms by location, amenities and membership plans.', to: '/centres', span: 'wide' },
@@ -34,25 +35,42 @@ export default function Home() {
         <div className="orb orb-a" />
         <div className="orb orb-b" />
         <div className="orb orb-c" />
-        <div className="container hero-inner">
-          <Reveal><span className="pill"><span className="dot" /> Fitness, booked in one place</span></Reveal>
-          <Reveal delay={120}>
-            <h1>Train smarter. <span className="gradient-text">Book faster.</span> Live stronger.</h1>
-          </Reveal>
-          <Reveal delay={240}>
-            <p>FitLife connects you with the right fitness centre, a trainer you trust and a diet plan that fits your goals, all in one place.</p>
-          </Reveal>
-          <Reveal delay={360}>
-            <div className="hero-actions">
-              <Link to="/centres" className="btn btn-primary">Explore centres <ArrowRight size={18} /></Link>
-              <Link to="/trainers" className="btn">Find a trainer</Link>
-            </div>
-          </Reveal>
-          <Reveal delay={480}>
-            <div className="stats">
-              <div><strong>3+</strong><span className="muted">Partner centres</span></div>
-              <div><strong>24/7</strong><span className="muted">Online booking</span></div>
-              <div><strong>Secure</strong><span className="muted">Razorpay payments</span></div>
+        <div className="container hero-layout">
+          <div className="hero-inner">
+            <Reveal><span className="pill"><span className="dot" /> Fitness, booked in one place</span></Reveal>
+            <Reveal delay={120}>
+              <h1>Train smarter. <span className="gradient-text">Book faster.</span> Live stronger.</h1>
+            </Reveal>
+            <Reveal delay={240}>
+              <p>FitLife connects you with the right fitness centre, a trainer you trust and a diet plan that fits your goals, all in one place.</p>
+            </Reveal>
+            <Reveal delay={360}>
+              <div className="hero-actions">
+                <Link to="/centres" className="btn btn-primary">Explore centres <ArrowRight size={18} /></Link>
+                <Link to="/trainers" className="btn">Find a trainer</Link>
+              </div>
+            </Reveal>
+            <Reveal delay={480}>
+              <div className="stats">
+                <div><strong>3+</strong><span className="muted">Partner centres</span></div>
+                <div><strong>24/7</strong><span className="muted">Online booking</span></div>
+                <div><strong>Secure</strong><span className="muted">Razorpay payments</span></div>
+              </div>
+            </Reveal>
+          </div>
+          <Reveal delay={240} className="hero-visual-wrap">
+            <div className="hero-visual">
+              <img src={heroImage} alt="Bright, modern fitness centre with a full range of training equipment" />
+              <div className="hero-visual-shade" />
+              <div className="hero-photo-label">
+                <span className="hero-photo-icon"><MapPin size={17} /></span>
+                <span><strong>Find your place to move</strong><small>Explore gyms and studios near you</small></span>
+                <Link to="/centres" aria-label="Explore fitness centres"><ArrowRight size={18} /></Link>
+              </div>
+              <div className="hero-float-card">
+                <span className="hero-float-icon"><Sparkles size={16} /></span>
+                <span><strong>A better fit starts here</strong><small>Centres · Coaches · Nutrition</small></span>
+              </div>
             </div>
           </Reveal>
         </div>

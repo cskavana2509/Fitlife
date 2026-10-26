@@ -78,7 +78,7 @@ export default function TrainerDetail() {
             <Reveal key={s.id} delay={(i % 4) * 70}>
               <div className="slot" style={{ height: '100%' }}>
                 <strong style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <CalendarDays size={18} color="#c6ff3d" /> {fmtDateTime(s.starts_at)}
+                  <CalendarDays size={18} color="var(--lime)" /> {fmtDateTime(s.starts_at)}
                 </strong>
                 <p className="muted" style={{ marginBottom: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
                   <Clock size={15} /> Ends {fmtDateTime(s.ends_at)}

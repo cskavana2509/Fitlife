@@ -51,7 +51,7 @@ export default function Recommendations() {
 
       <div className="dash" style={{ gridTemplateColumns: 'minmax(300px, 420px) 1fr', alignItems: 'start' }}>
         <form className="card card-lg" onSubmit={getRecommendations}>
-          <h3 className="card-title"><Target size={20} color="#c6ff3d" /> Your profile</h3>
+          <h3 className="card-title"><Target size={20} color="var(--lime)" /> Your profile</h3>
           <div className="field"><label>Main goal</label>
             <select value={form.goal} onChange={update('goal')}>
               <option value="weight_loss">Weight loss</option>
@@ -93,7 +93,7 @@ export default function Recommendations() {
             <div style={{ display: 'grid', gap: 24 }}>
               <Reveal>
                 <div className="card">
-                  <h3 className="card-title"><MapPin size={20} color="#c6ff3d" /> Centres for you</h3>
+                  <h3 className="card-title"><MapPin size={20} color="var(--lime)" /> Centres for you</h3>
                   {result.centres?.length === 0 && <div className="empty">No matches found.</div>}
                   {result.centres?.map((r) => (
                     <Link key={r.id} to={`/centres/${r.id}`} className="list-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -106,7 +106,7 @@ export default function Recommendations() {
 
               <Reveal delay={120}>
                 <div className="card">
-                  <h3 className="card-title"><Salad size={20} color="#22d3ee" /> Diet plans for you</h3>
+                  <h3 className="card-title"><Salad size={20} color="var(--lime)" /> Diet plans for you</h3>
                   {result.diet_plans?.map((r) => (
                     <Link key={r.id} to="/diet" className="list-item" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                       <span style={{ color: 'var(--cyan)', fontWeight: 600 }}>View plan →</span>
@@ -118,7 +118,7 @@ export default function Recommendations() {
 
               <Reveal delay={240}>
                 <div className="card">
-                  <h3 className="card-title"><Dumbbell size={20} color="#ff4d9d" /> Workout tips</h3>
+                  <h3 className="card-title"><Dumbbell size={20} color="var(--lime)" /> Workout tips</h3>
                   <ul className="feature-list">
                     {result.workout_tips?.map((t) => <li key={t}>{t}</li>)}
                   </ul>

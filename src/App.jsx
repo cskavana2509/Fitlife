@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import RoleRoute from './components/RoleRoute';
+import ChatBot from './components/ChatBot';
 import Home from './pages/Home';
 import Auth from './pages/Auth';
 import Centres from './pages/Centres';
@@ -19,65 +19,17 @@ import CoordinatorDashboard from './pages/CoordinatorDashboard';
 
 export default function App() {
   const { pathname } = useLocation();
-  const activeCard = useRef(null);
-
-  useEffect(() => {
-    activeCard.current = null;
-  }, [pathname]);
-
-  const handleCardPointerMove = (event) => {
-    if (event.pointerType === 'touch' || !(event.target instanceof Element)) return;
-
-    const card = event.target.closest('.card');
-    if (!card) return;
-
-    if (activeCard.current && activeCard.current !== card) {
-      activeCard.current.style.removeProperty('--tilt-x');
-      activeCard.current.style.removeProperty('--tilt-y');
-      activeCard.current.classList.remove('is-tilting');
-    }
-
-    const bounds = card.getBoundingClientRect();
-    const x = (event.clientX - bounds.left) / bounds.width;
-    const y = (event.clientY - bounds.top) / bounds.height;
-
-    card.style.setProperty('--tilt-x', `${(x - 0.5) * 7}deg`);
-    card.style.setProperty('--tilt-y', `${(0.5 - y) * 7}deg`);
-    card.style.setProperty('--mx', `${x * bounds.width}px`);
-    card.style.setProperty('--my', `${y * bounds.height}px`);
-    card.classList.add('is-tilting');
-    activeCard.current = card;
-  };
-
-  const handleCardPointerOut = (event) => {
-    if (!(event.target instanceof Element)) return;
-
-    const card = event.target.closest('.card');
-    const nextCard = event.relatedTarget instanceof Element
-      ? event.relatedTarget.closest('.card')
-      : null;
-
-    if (!card || card === nextCard) return;
-
-    card.style.removeProperty('--tilt-x');
-    card.style.removeProperty('--tilt-y');
-    card.classList.remove('is-tilting');
-    if (activeCard.current === card) activeCard.current = null;
-  };
 
   return (
     <>
       <div className="aurora" />
       <div className="grain" />
       <Navbar />
-      {/* key=pathname replays the enter animation on every route change */}
-      <main
-        key={pathname}
-        className="page-enter"
-        onPointerMove={handleCardPointerMove}
-        onPointerOut={handleCardPointerOut}
-      >
+
+      {/* key=pathname replays the page animation on every route change */}
+      <main key={pathname} className="page-enter">
         <Routes>
+          {/* Public pages */}
           <Route path="/" element={<Home />} />
           <Route path="/centres" element={<Centres />} />
           <Route path="/centres/:id" element={<CentreDetail />} />
@@ -88,11 +40,29 @@ export default function App() {
           <Route path="/login" element={<Auth mode="login" />} />
           <Route path="/signup" element={<Auth mode="signup" />} />
 
-          <Route path="/recommendations" element={<ProtectedRoute><Recommendations /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/trainer" element={<RoleRoute roles={['trainer']}><TrainerDashboard /></RoleRoute>} />
-          <Route path="/admin" element={<RoleRoute roles={['admin']}><AdminDashboard /></RoleRoute>} />
-          <Route path="/coordinator" element={<RoleRoute roles={['coordinator', 'admin']}><CoordinatorDashboard /></RoleRoute>} />
+          {/* Logged-in customers */}
+          <Route
+            path="/recommendations"
+            element={<ProtectedRoute><Recommendations /></ProtectedRoute>}
+          />
+          <Route
+            path="/dashboard"
+            element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+          />
+
+          {/* Role-restricted pages */}
+          <Route
+            path="/trainer"
+            element={<RoleRoute roles={['trainer']}><TrainerDashboard /></RoleRoute>}
+          />
+          <Route
+            path="/admin"
+            element={<RoleRoute roles={['admin']}><AdminDashboard /></RoleRoute>}
+          />
+          <Route
+            path="/coordinator"
+            element={<RoleRoute roles={['coordinator', 'admin']}><CoordinatorDashboard /></RoleRoute>}
+          />
         </Routes>
       </main>
 
@@ -102,6 +72,9 @@ export default function App() {
           <span className="muted">© {new Date().getFullYear()} · Find centres, book trainers, eat smarter.</span>
         </div>
       </footer>
+
+      {/* FitBot chat button and panel, shown on every page */}
+      <ChatBot />
     </>
   );
 }

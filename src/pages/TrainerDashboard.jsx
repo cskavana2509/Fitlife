@@ -128,14 +128,14 @@ export default function TrainerDashboard() {
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', margin: '30px 0' }}>
-        <div className="card stat-card"><CalendarPlus size={20} color="#c6ff3d" /><div className="num">{slots.length}</div><span className="muted">Slots published</span></div>
-        <div className="card stat-card"><Users size={20} color="#22d3ee" /><div className="num">{bookings.length}</div><span className="muted">Bookings</span></div>
-        <div className="card stat-card"><Clock size={20} color="#ff4d9d" /><div className="num">{slots.filter((s) => !s.is_booked).length}</div><span className="muted">Open slots</span></div>
+        <div className="card stat-card"><CalendarPlus size={20} color="var(--lime)" /><div className="num">{slots.length}</div><span className="muted">Slots published</span></div>
+        <div className="card stat-card"><Users size={20} color="var(--lime)" /><div className="num">{bookings.length}</div><span className="muted">Bookings</span></div>
+        <div className="card stat-card"><Clock size={20} color="var(--lime)" /><div className="num">{slots.filter((s) => !s.is_booked).length}</div><span className="muted">Open slots</span></div>
       </div>
 
       <div className="dash">
         <form className="card" onSubmit={addSlot}>
-          <h3 className="card-title"><CalendarPlus size={20} color="#c6ff3d" /> Publish a session slot</h3>
+          <h3 className="card-title"><CalendarPlus size={20} color="var(--lime)" /> Publish a session slot</h3>
           <div className="field"><label>Starts</label>
             <input type="datetime-local" required value={slotForm.starts_at} onChange={(e) => setSlotForm({ ...slotForm, starts_at: e.target.value })} /></div>
           <div className="field"><label>Ends</label>

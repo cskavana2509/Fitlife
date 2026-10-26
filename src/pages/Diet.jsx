@@ -68,9 +68,9 @@ export default function Diet() {
                   </div>
 
                   <div style={{ display: 'flex', height: 8, borderRadius: 99, overflow: 'hidden', marginBottom: 18 }}>
-                    <span style={{ width: `${s.p}%`, background: '#c6ff3d' }} />
-                    <span style={{ width: `${s.c}%`, background: '#22d3ee' }} />
-                    <span style={{ width: `${s.f}%`, background: '#ff4d9d' }} />
+                    <span style={{ width: `${s.p}%`, background: 'var(--lime)' }} />
+                    <span style={{ width: `${s.c}%`, background: 'var(--cyan)' }} />
+                    <span style={{ width: `${s.f}%`, background: '#99f6e4' }} />
                   </div>
 
                   <button className="btn btn-sm" onClick={() => setOpenId(openId === p.id ? null : p.id)}>

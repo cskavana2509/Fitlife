@@ -46,9 +46,9 @@ export default function CoordinatorDashboard() {
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: 30 }}>
-        <div className="card stat-card"><Dumbbell size={20} color="#c6ff3d" /><div className="num">{memberships.length}</div><span className="muted">Memberships</span></div>
-        <div className="card stat-card"><CalendarCheck size={20} color="#22d3ee" /><div className="num">{bookings.length}</div><span className="muted">Session bookings</span></div>
-        <div className="card stat-card"><Wallet size={20} color="#ff4d9d" /><div className="num">{inr(revenue)}</div><span className="muted">Revenue collected</span></div>
+        <div className="card stat-card"><Dumbbell size={20} color="var(--lime)" /><div className="num">{memberships.length}</div><span className="muted">Memberships</span></div>
+        <div className="card stat-card"><CalendarCheck size={20} color="var(--lime)" /><div className="num">{bookings.length}</div><span className="muted">Session bookings</span></div>
+        <div className="card stat-card"><Wallet size={20} color="var(--lime)" /><div className="num">{inr(revenue)}</div><span className="muted">Revenue collected</span></div>
       </div>
 
       <div className="toolbar">

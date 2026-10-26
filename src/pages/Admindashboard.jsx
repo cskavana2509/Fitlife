@@ -137,7 +137,7 @@ export default function AdminDashboard() {
       {tab === 'centres' && (
         <div className="dash">
           <form className="card" onSubmit={addCentre}>
-            <h3 className="card-title"><Plus size={18} color="#c6ff3d" /> Add a centre</h3>
+            <h3 className="card-title"><Plus size={18} color="var(--lime)" /> Add a centre</h3>
             <div className="field"><label>Name</label>
               <input required value={centreForm.name} onChange={(e) => setCentreForm({ ...centreForm, name: e.target.value })} /></div>
             <div className="field"><label>City</label>
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
       {tab === 'plans' && (
         <div className="dash">
           <form className="card" onSubmit={addPlan}>
-            <h3 className="card-title"><Plus size={18} color="#c6ff3d" /> Add a membership plan</h3>
+            <h3 className="card-title"><Plus size={18} color="var(--lime)" /> Add a membership plan</h3>
             <div className="field"><label>Centre</label>
               <select required value={planForm.centre_id} onChange={(e) => setPlanForm({ ...planForm, centre_id: e.target.value })}>
                 <option value="">Select a centre</option>
