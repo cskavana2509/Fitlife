@@ -12,7 +12,7 @@ const json = (body: unknown, status = 200) =>
   });
 
 // Free-tier model. If Google retires it, check the current name in AI Studio.
-const GEMINI_MODEL = 'gemini-2.5-flash';
+const GEMINI_MODEL = 'gemini-flash-latest';
 
 type Profile = {
   goal: string | null;

@@ -26,52 +26,54 @@ export default function App() {
       <div className="grain" />
       <Navbar />
 
-      {/* key=pathname replays the page animation on every route change */}
-      <main key={pathname} className="page-enter">
-        <Routes>
-          {/* Public pages */}
-          <Route path="/" element={<Home />} />
-          <Route path="/centres" element={<Centres />} />
-          <Route path="/centres/:id" element={<CentreDetail />} />
-          <Route path="/trainers" element={<Trainers />} />
-          <Route path="/trainers/:id" element={<TrainerDetail />} />
-          <Route path="/diet" element={<Diet />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/login" element={<Auth mode="login" />} />
-          <Route path="/signup" element={<Auth mode="signup" />} />
+      <div className="app-content">
+        {/* key=pathname replays the page animation on every route change */}
+        <main key={pathname} className="page-enter">
+          <Routes>
+            {/* Public pages */}
+            <Route path="/" element={<Home />} />
+            <Route path="/centres" element={<Centres />} />
+            <Route path="/centres/:id" element={<CentreDetail />} />
+            <Route path="/trainers" element={<Trainers />} />
+            <Route path="/trainers/:id" element={<TrainerDetail />} />
+            <Route path="/diet" element={<Diet />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/login" element={<Auth mode="login" />} />
+            <Route path="/signup" element={<Auth mode="signup" />} />
 
-          {/* Logged-in customers */}
-          <Route
-            path="/recommendations"
-            element={<ProtectedRoute><Recommendations /></ProtectedRoute>}
-          />
-          <Route
-            path="/dashboard"
-            element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
-          />
+            {/* Logged-in customers */}
+            <Route
+              path="/recommendations"
+              element={<ProtectedRoute><Recommendations /></ProtectedRoute>}
+            />
+            <Route
+              path="/dashboard"
+              element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+            />
 
-          {/* Role-restricted pages */}
-          <Route
-            path="/trainer"
-            element={<RoleRoute roles={['trainer']}><TrainerDashboard /></RoleRoute>}
-          />
-          <Route
-            path="/admin"
-            element={<RoleRoute roles={['admin']}><AdminDashboard /></RoleRoute>}
-          />
-          <Route
-            path="/coordinator"
-            element={<RoleRoute roles={['coordinator', 'admin']}><CoordinatorDashboard /></RoleRoute>}
-          />
-        </Routes>
-      </main>
+            {/* Role-restricted pages */}
+            <Route
+              path="/trainer"
+              element={<RoleRoute roles={['trainer']}><TrainerDashboard /></RoleRoute>}
+            />
+            <Route
+              path="/admin"
+              element={<RoleRoute roles={['admin']}><AdminDashboard /></RoleRoute>}
+            />
+            <Route
+              path="/coordinator"
+              element={<RoleRoute roles={['coordinator', 'admin']}><CoordinatorDashboard /></RoleRoute>}
+            />
+          </Routes>
+        </main>
 
-      <footer className="footer">
-        <div className="container footer-inner">
-          <span className="logo">Fit<span>Life</span></span>
-          <span className="muted">© {new Date().getFullYear()} · Find centres, book trainers, eat smarter.</span>
-        </div>
-      </footer>
+        <footer className="footer">
+          <div className="container footer-inner">
+            <span className="logo">Fit<span>Life</span></span>
+            <span className="muted">© {new Date().getFullYear()} · Find centres, book trainers, eat smarter.</span>
+          </div>
+        </footer>
+      </div>
 
       {/* FitBot chat button and panel, shown on every page */}
       <ChatBot />

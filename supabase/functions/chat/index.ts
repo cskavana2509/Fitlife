@@ -12,30 +12,127 @@ const json = (body: unknown, status = 200) =>
     headers: { ...cors, 'Content-Type': 'application/json' },
   });
 
-const GEMINI_MODEL = 'gemini-2.5-flash';
-const MAX_CHARS = 500;   // longest message allowed
-const MAX_TURNS = 8;     // how much chat history is sent
+const GEMINI_MODEL = 'gemini-3.5-flash-lite';
+const MAX_CHARS = 500;
+const MAX_TURNS = 8;
+const FALLBACK = "I'm having trouble answering right now. Please try again in a moment.";
 
 const inr = (paise: number | null) => (paise == null ? '—' : `₹${Math.round(paise / 100)}`);
+
+type GeminiMessage = { role: 'user' | 'model'; text: string };
+
+class GeminiApiError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+    this.name = 'GeminiApiError';
+  }
+}
+
+async function askGemini(
+  apiKey: string,
+  systemPrompt: string,
+  history: GeminiMessage[],
+): Promise<string> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': apiKey,
+      },
+      signal: AbortSignal.timeout(30_000),
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: history.map((message) => ({
+          role: message.role,
+          parts: [{ text: message.text }],
+        })),
+        generationConfig: {
+          maxOutputTokens: 512,
+          thinkingConfig: { thinkingLevel: 'LOW' },
+        },
+      }),
+    },
+  );
+
+  const responseText = await res.text();
+  let data: {
+    error?: { message?: string };
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new GeminiApiError(res.status, `Gemini returned an unreadable response (HTTP ${res.status})`);
+  }
+  if (!res.ok) {
+    throw new GeminiApiError(res.status, data.error?.message ?? `Gemini HTTP ${res.status}`);
+  }
+
+  return (data?.candidates?.[0]?.content?.parts ?? [])
+    .map((part: { text?: string }) => part.text ?? '')
+    .join('')
+    .trim();
+}
+
+function geminiFailureReply(error: unknown): string {
+  if (!(error instanceof GeminiApiError)) {
+    if (error instanceof Error && (error.name === 'AbortError' || error.name === 'TimeoutError')) {
+      return 'FitBot’s request to Gemini timed out. Please try again.';
+    }
+    return 'FitBot could not connect to Gemini. Please try again shortly.';
+  }
+
+  if (error.status === 400) {
+    return 'Gemini rejected FitBot’s request. Please contact the project admin.';
+  }
+  if (error.status === 401 || error.status === 403) {
+    return 'FitBot cannot access Gemini. Ask the project admin to set a valid Google Gemini API key in the Supabase GEMINI_API_KEY secret.';
+  }
+  if (error.status === 404) {
+    return 'FitBot’s configured Gemini model is unavailable. Please contact the project admin.';
+  }
+  if (error.status === 429) {
+    return 'FitBot has temporarily reached its Gemini usage limit. Please try again later.';
+  }
+  if (error.status >= 500) {
+    return 'Google Gemini is temporarily unavailable. Please try again shortly.';
+  }
+  return FALLBACK;
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
   try {
-    const url = Deno.env.get('SUPABASE_URL')!;
-    const anon = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const url = Deno.env.get('SUPABASE_URL');
+    const anon = Deno.env.get('SUPABASE_ANON_KEY');
+    const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     const geminiKey = Deno.env.get('GEMINI_API_KEY') ?? '';
 
-    // 1. Read the chat history from the frontend
-    const body = await req.json().catch(() => ({}));
-    const incoming: { role: string; text: string }[] = Array.isArray(body.messages) ? body.messages : [];
+    if (!url || !anon || !service) {
+      throw new Error('Missing required Supabase environment configuration');
+    }
 
-    let history = incoming.slice(-MAX_TURNS).map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      text: String(m.text ?? '').slice(0, MAX_CHARS),
-    }));
+    const body: unknown = await req.json().catch(() => null);
+    const rawMessages =
+      body && typeof body === 'object' && 'messages' in body
+        ? body.messages
+        : null;
+    const incoming = Array.isArray(rawMessages) ? rawMessages : [];
+
+    const history: GeminiMessage[] = incoming.slice(-MAX_TURNS).map((message) => {
+      const item =
+        message && typeof message === 'object'
+          ? message as Record<string, unknown>
+          : {};
+      return {
+        role: item.role === 'assistant' ? 'model' : 'user',
+        text: typeof item.text === 'string' ? item.text.slice(0, MAX_CHARS) : '',
+      };
+    });
     while (history.length && history[0].role === 'model') history.shift();
 
     const last = history[history.length - 1];
@@ -45,7 +142,6 @@ Deno.serve(async (req) => {
 
     const admin = createClient(url, service);
 
-    // 2. Identify the visitor if logged in (anonymous visitors still get catalogue answers)
     let userId: string | null = null;
     const authHeader = req.headers.get('Authorization') ?? '';
     if (authHeader) {
@@ -56,7 +152,6 @@ Deno.serve(async (req) => {
       userId = user?.id ?? null;
     }
 
-    // 3. Load the catalogue the bot is allowed to talk about
     const [centresRes, trainersRes, plansRes, dietsRes] = await Promise.all([
       admin.from('fitness_centres').select('name, city, address, amenities, rating').limit(30),
       admin.from('trainers')
@@ -70,26 +165,26 @@ Deno.serve(async (req) => {
 
     const catalogue = {
       centres: centresRes.data ?? [],
-      trainers: (trainersRes.data ?? []).map((t: any) => ({
-        name: t.display_name,
-        specialization: t.specialization,
-        experience_years: t.experience_years,
-        rate_per_session: inr(t.hourly_rate_paise),
+      trainers: (trainersRes.data ?? []).map((trainer) => ({
+        name: trainer.display_name,
+        specialization: trainer.specialization,
+        experience_years: trainer.experience_years,
+        rate_per_session: inr(trainer.hourly_rate_paise),
       })),
-      membership_plans: (plansRes.data ?? []).map((p: any) => ({
-        name: p.name,
-        centre: p.fitness_centres?.name,
-        duration_days: p.duration_days,
-        price: inr(p.price_paise),
+      membership_plans: (plansRes.data ?? []).map((plan) => ({
+        name: plan.name,
+        centre: plan.fitness_centres?.name,
+        duration_days: plan.duration_days,
+        price: inr(plan.price_paise),
       })),
       diet_plans: dietsRes.data ?? [],
     };
 
-    // 4. Personal data, only for logged-in visitors
-    let visitorInfo = 'The visitor is not logged in. If they ask about their own bookings or memberships, tell them to log in.';
+    let visitorInfo =
+      'The visitor is not logged in. If they ask about their own bookings or memberships, tell them to log in.';
     if (userId) {
       const today = new Date().toISOString().slice(0, 10);
-      const [profileRes, memRes, bookRes] = await Promise.all([
+      const [profileRes, membershipsRes, bookingsRes] = await Promise.all([
         admin.from('profiles').select('full_name, goal, activity_level').eq('id', userId).maybeSingle(),
         admin.from('memberships')
           .select('ends_on, membership_plans(name), fitness_centres(name)')
@@ -100,12 +195,11 @@ Deno.serve(async (req) => {
       ]);
       visitorInfo = JSON.stringify({
         profile: profileRes.data,
-        active_memberships: memRes.data ?? [],
-        bookings: bookRes.data ?? [],
+        active_memberships: membershipsRes.data ?? [],
+        bookings: bookingsRes.data ?? [],
       });
     }
 
-    // 5. Instructions that keep the bot on topic and grounded in the data
     const systemPrompt = `You are FitBot, the assistant inside FitLife, a website where people find fitness centres, book trainers, buy memberships and follow diet plans.
 
 Rules:
@@ -127,39 +221,14 @@ ${visitorInfo}`;
       return json({ reply: 'FitBot is not configured yet. Please try again later.' });
     }
 
-    // 6. Ask Gemini
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: history.map((m) => ({ role: m.role, parts: [{ text: m.text }] })),
-            generationConfig: {
-              maxOutputTokens: 1024,
-              temperature: 0.4,
-              thinkingConfig: { thinkingBudget: 0 },
-            },
-          }),
-        },
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error?.message ?? `Gemini HTTP ${res.status}`);
-
-      const reply = (data?.candidates?.[0]?.content?.parts ?? [])
-        .map((p: any) => p.text ?? '')
-        .join('')
-        .trim();
-
+      const reply = await askGemini(geminiKey, systemPrompt, history);
       return json({ reply: reply || "I couldn't come up with an answer. Could you rephrase that?" });
-    } catch (aiErr) {
-      console.error('chat: Gemini failed', aiErr);
-      return json({ reply: "I'm having trouble answering right now. Please try again in a moment." });
+    } catch (aiError) {
+      console.error('chat: Gemini failed', aiError);
+      return json({ reply: geminiFailureReply(aiError) });
     }
-  } catch (e) {
-    return json({ error: String(e) }, 500);
+  } catch (error) {
+    return json({ error: String(error) }, 500);
   }
 });
