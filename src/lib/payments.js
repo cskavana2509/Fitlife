@@ -19,7 +19,7 @@ export async function startCheckout({ kind, itemId, user, onSuccess, onError }) 
   const loaded = await loadRazorpay();
   if (!loaded) return onError?.('Could not load the payment gateway');
 
-  // Step A: ask the server to create the order (price is read on the server)
+  // Step A: the server creates the order and reads the real price
   const { data, error } = await supabase.functions.invoke('create-order', {
     body: { kind, item_id: itemId },
   });
@@ -27,7 +27,7 @@ export async function startCheckout({ kind, itemId, user, onSuccess, onError }) 
     return onError?.(data?.error || error?.message || 'Could not start payment');
   }
 
-  // Step B: open the Razorpay popup with the payment methods enabled
+  // Step B: open the popup
   const rzp = new window.Razorpay({
     key: data.key_id,
     amount: data.amount,
@@ -39,20 +39,9 @@ export async function startCheckout({ kind, itemId, user, onSuccess, onError }) 
       name: user?.user_metadata?.full_name ?? '',
       email: user?.email ?? '',
     },
-    theme: { color: '#c6ff3d' },
+    theme: { color: '#0f766e' },
 
-    // Payment options shown in the popup.
-    // Each method must also be enabled in the Razorpay dashboard (Settings → Configurations → Payment Methods).
-    method: {
-      upi: true,
-      card: true,
-      netbanking: true,
-      wallet: true,
-      emi: false,
-      paylater: false,
-    },
-
-    // Step C: after payment, verify the signature on the server
+    // Step C: verify the payment on the server
     handler: async (response) => {
       const { data: verified, error: vErr } = await supabase.functions.invoke('verify-payment', {
         body: response, // razorpay_order_id, razorpay_payment_id, razorpay_signature
@@ -70,7 +59,6 @@ export async function startCheckout({ kind, itemId, user, onSuccess, onError }) 
     },
   });
 
-  // Show a clear message if a payment fails inside the popup
   rzp.on('payment.failed', (resp) => {
     onError?.(resp?.error?.description || 'Payment failed. Please try again.');
   });
