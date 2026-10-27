@@ -1,28 +1,27 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
-  Dumbbell,
-  Menu,
-  X,
-  LogOut,
   Building2,
-  Users,
-  Search,
-  LayoutDashboard,
-  Utensils,
-  Sparkles,
-  ShieldCheck,
   CalendarDays,
+  Dumbbell,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Utensils,
+  Users,
+  X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 
 const publicLinks = [
-  { to: '/trainers', label: 'Trainers', icon: Users },
   { to: '/centres', label: 'Centres', icon: Building2 },
-  { to: '/search', label: 'Search', icon: Search },
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/trainers', label: 'Trainers', icon: Users },
   { to: '/diet', label: 'Diet', icon: Utensils },
+  { to: '/search', label: 'Search', icon: Search },
 ];
 
 export default function Navbar() {
@@ -32,24 +31,16 @@ export default function Navbar() {
 
   const role = profile?.role ?? 'customer';
 
-  // Links shown only to logged-in users, based on their role
   const roleLinks = !user ? [] : [
-    ...(role === 'customer' ? [{ to: '/recommendations', label: 'AI Picks' }] : []),
-    ...(role === 'trainer' ? [{ to: '/trainer', label: 'Trainer Panel' }] : []),
-    ...(role === 'admin' ? [{ to: '/admin', label: 'Admin' }] : []),
-    ...(role === 'coordinator' ? [{ to: '/coordinator', label: 'Coordinator' }] : []),
+    ...(role === 'customer' ? [{ to: '/recommendations', label: 'AI Picks', icon: Sparkles }] : []),
+    ...(role === 'trainer' ? [{ to: '/trainer', label: 'Trainer Panel', icon: Users }] : []),
+    ...(role === 'centre_owner' ? [{ to: '/owner', label: 'My Centres', icon: Building2 }] : []),
+    ...(role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: ShieldCheck }] : []),
+    ...(role === 'coordinator' ? [{ to: '/coordinator', label: 'Coordinator', icon: CalendarDays }] : []),
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   ];
-  const roleIcons = {
-    'AI Picks': Sparkles,
-    'Trainer Panel': Users,
-    Admin: ShieldCheck,
-    Coordinator: CalendarDays,
-  };
 
-  const links = [...publicLinks, ...roleLinks.map((link) => ({
-    ...link,
-    icon: link.icon ?? roleIcons[link.label],
-  }))];
+  const links = [...publicLinks, ...roleLinks];
 
   const handleSignOut = async () => {
     await signOut();
@@ -65,12 +56,19 @@ export default function Navbar() {
         onClick={() => setOpen((value) => !value)}
         aria-label={open ? 'Close navigation' : 'Open navigation'}
         aria-expanded={open}
+        aria-controls="main-navigation"
       >
         {open ? <X size={20} /> : <Menu size={20} />}
       </button>
-      {open && <button className="sidebar-backdrop" onClick={() => setOpen(false)} aria-label="Close navigation" />}
+      {open && (
+        <button
+          className="sidebar-backdrop"
+          onClick={() => setOpen(false)}
+          aria-label="Close navigation"
+        />
+      )}
 
-      <aside className={`nav-sidebar ${open ? 'open' : ''}`}>
+      <aside className={`nav-sidebar ${open ? 'open' : ''}`} id="main-navigation">
         <Link to="/" className="logo" onClick={() => setOpen(false)}>
           <span className="icon-tile" style={{ width: 36, height: 36, borderRadius: 12, margin: 0 }}>
             <Dumbbell size={18} />
@@ -98,7 +96,11 @@ export default function Navbar() {
               <LogOut size={18} aria-hidden="true" /> Sign out
             </button>
           ) : (
-            <Link to="/login" className="sidebar-link sidebar-signin" onClick={() => setOpen(false)}>
+            <Link
+              to="/login"
+              className="sidebar-link sidebar-signin"
+              onClick={() => setOpen(false)}
+            >
               <LogOut size={18} aria-hidden="true" /> Sign in
             </Link>
           )}

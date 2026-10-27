@@ -16,6 +16,7 @@ import Dashboard from './pages/Dashboard';
 import TrainerDashboard from './pages/TrainerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import CoordinatorDashboard from './pages/CoordinatorDashboard';
+import OwnerDashboard from './pages/OwnerDashboard';
 
 export default function App() {
   const { pathname } = useLocation();
@@ -27,10 +28,8 @@ export default function App() {
       <Navbar />
 
       <div className="app-content">
-        {/* key=pathname replays the page animation on every route change */}
         <main key={pathname} className="page-enter">
           <Routes>
-            {/* Public pages */}
             <Route path="/" element={<Home />} />
             <Route path="/centres" element={<Centres />} />
             <Route path="/centres/:id" element={<CentreDetail />} />
@@ -41,7 +40,6 @@ export default function App() {
             <Route path="/login" element={<Auth mode="login" />} />
             <Route path="/signup" element={<Auth mode="signup" />} />
 
-            {/* Logged-in customers */}
             <Route
               path="/recommendations"
               element={<ProtectedRoute><Recommendations /></ProtectedRoute>}
@@ -51,10 +49,13 @@ export default function App() {
               element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
             />
 
-            {/* Role-restricted pages */}
             <Route
               path="/trainer"
               element={<RoleRoute roles={['trainer']}><TrainerDashboard /></RoleRoute>}
+            />
+            <Route
+              path="/owner"
+              element={<RoleRoute roles={['centre_owner']}><OwnerDashboard /></RoleRoute>}
             />
             <Route
               path="/admin"

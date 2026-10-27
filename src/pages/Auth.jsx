@@ -59,11 +59,19 @@ export default function Auth({ mode }) {
       <div className="auth-brand fade-up">
         <span className="pill"><span className="dot" /> {isSignup ? 'Join FitLife' : 'Welcome back'}</span>
         <h2>
-          {isSignup ? <>Start your <span className="gradient-text">transformation</span>.</> : <>Pick up where you <span className="gradient-text">left off</span>.</>}
+          {isSignup
+            ? <>Start your <span className="gradient-text">transformation</span>.</>
+            : <>Pick up where you <span className="gradient-text">left off</span>.</>}
         </h2>
         <div className="grid" style={{ gridTemplateColumns: '1fr', gap: 14, maxWidth: 420 }}>
-          <div className="card" style={{ padding: 20 }}><Building2 size={20} color="var(--lime)" /> <strong>Centres near you</strong><p className="muted">Compare memberships and amenities.</p></div>
-          <div className="card" style={{ padding: 20 }}><UserRound size={20} color="var(--lime)" /> <strong>Book a trainer</strong><p className="muted">Pick a slot and pay securely.</p></div>
+          <div className="card" style={{ padding: 20 }}>
+            <Building2 size={20} color="#c6ff3d" /> <strong>Centres near you</strong>
+            <p className="muted">Compare memberships and amenities.</p>
+          </div>
+          <div className="card" style={{ padding: 20 }}>
+            <UserRound size={20} color="#22d3ee" /> <strong>Book a trainer</strong>
+            <p className="muted">Pick a slot and pay securely.</p>
+          </div>
         </div>
       </div>
 
@@ -71,7 +79,7 @@ export default function Auth({ mode }) {
         <div className="icon-tile" style={{ marginBottom: 16 }}><Dumbbell size={24} /></div>
         <h2>{isSignup ? 'Create account' : 'Log in'}</h2>
         <p className="muted" style={{ marginBottom: 24 }}>
-          {isSignup ? 'Join as a customer or a trainer.' : 'Log in to manage your bookings.'}
+          {isSignup ? 'Join as a customer, trainer or centre owner.' : 'Log in to manage your bookings.'}
         </p>
 
         {isSignup && (
@@ -81,6 +89,8 @@ export default function Auth({ mode }) {
                 onClick={() => setForm((f) => ({ ...f, role: 'customer' }))}>Customer</button>
               <button type="button" className={`chip ${form.role === 'trainer' ? 'active' : ''}`}
                 onClick={() => setForm((f) => ({ ...f, role: 'trainer' }))}>Trainer</button>
+              <button type="button" className={`chip ${form.role === 'centre_owner' ? 'active' : ''}`}
+                onClick={() => setForm((f) => ({ ...f, role: 'centre_owner' }))}>Centre owner</button>
             </div>
             <div className="field">
               <label>Full name</label>

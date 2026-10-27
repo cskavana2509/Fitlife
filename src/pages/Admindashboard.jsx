@@ -28,7 +28,7 @@ export default function AdminDashboard() {
   const loadAll = useCallback(async () => {
     const [t, c, p, u, o, m, b] = await Promise.all([
       supabase.from('trainers').select('*, fitness_centres(name)').order('created_at', { ascending: false }),
-      supabase.from('fitness_centres').select('*').order('name'),
+      supabase.from('fitness_centres').select('*, profiles(full_name)').order('name'),
       supabase.from('membership_plans').select('*, fitness_centres(name)').order('name'),
       supabase.from('profiles').select('id, full_name, role, phone, created_at').order('created_at', { ascending: false }),
       supabase.from('orders').select('amount_paise, status'),
@@ -56,6 +56,13 @@ export default function AdminDashboard() {
     loadAll();
   };
 
+  const approveCentre = async (id) => {
+    const { error } = await supabase.from('fitness_centres').update({ is_approved: true }).eq('id', id);
+    if (error) return toast.error(error.message);
+    toast.success('Centre approved');
+    loadAll();
+  };
+
   const addCentre = async (e) => {
     e.preventDefault();
     const { error } = await supabase.from('fitness_centres').insert({
@@ -64,6 +71,7 @@ export default function AdminDashboard() {
       address: centreForm.address,
       description: centreForm.description,
       amenities: centreForm.amenities.split(',').map((s) => s.trim()).filter(Boolean),
+      is_approved: true,
     });
     if (error) return toast.error(error.message);
     toast.success('Centre added');
@@ -86,7 +94,8 @@ export default function AdminDashboard() {
     loadAll();
   };
 
-  const pending = trainers.filter((t) => !t.is_approved);
+  const pendingTrainers = trainers.filter((t) => !t.is_approved);
+  const pendingCentres = centres.filter((c) => !c.is_approved);
 
   return (
     <div className="container" style={{ paddingTop: 20 }}>
@@ -100,7 +109,12 @@ export default function AdminDashboard() {
           <button key={key} className={`chip ${tab === key ? 'active' : ''}`} onClick={() => setTab(key)}>
             <Icon size={14} style={{ verticalAlign: '-2px', marginRight: 6 }} />
             {label}
-            {key === 'trainers' && pending.length > 0 && <span className="badge warn" style={{ margin: '0 0 0 8px', padding: '1px 8px' }}>{pending.length}</span>}
+            {key === 'trainers' && pendingTrainers.length > 0 && (
+              <span className="badge warn" style={{ margin: '0 0 0 8px', padding: '1px 8px' }}>{pendingTrainers.length}</span>
+            )}
+            {key === 'centres' && pendingCentres.length > 0 && (
+              <span className="badge warn" style={{ margin: '0 0 0 8px', padding: '1px 8px' }}>{pendingCentres.length}</span>
+            )}
           </button>
         ))}
       </div>
@@ -111,6 +125,7 @@ export default function AdminDashboard() {
           <div className="card stat-card"><span className="muted">Memberships sold</span><div className="num">{stats.members}</div></div>
           <div className="card stat-card"><span className="muted">Sessions booked</span><div className="num">{stats.bookings}</div></div>
           <div className="card stat-card"><span className="muted">Approved trainers</span><div className="num">{stats.trainers}</div></div>
+          <div className="card stat-card"><span className="muted">Pending centres</span><div className="num">{pendingCentres.length}</div></div>
         </div>
       )}
 
@@ -137,7 +152,7 @@ export default function AdminDashboard() {
       {tab === 'centres' && (
         <div className="dash">
           <form className="card" onSubmit={addCentre}>
-            <h3 className="card-title"><Plus size={18} color="var(--lime)" /> Add a centre</h3>
+            <h3 className="card-title"><Plus size={18} color="#c6ff3d" /> Add a centre</h3>
             <div className="field"><label>Name</label>
               <input required value={centreForm.name} onChange={(e) => setCentreForm({ ...centreForm, name: e.target.value })} /></div>
             <div className="field"><label>City</label>
@@ -150,12 +165,22 @@ export default function AdminDashboard() {
               <input value={centreForm.amenities} onChange={(e) => setCentreForm({ ...centreForm, amenities: e.target.value })} /></div>
             <button className="btn btn-primary">Save centre</button>
           </form>
+
           <div className="card">
             <h3 className="card-title">All centres</h3>
+            {centres.length === 0 && <div className="empty">No centres yet.</div>}
             {centres.map((c) => (
               <div key={c.id} className="list-item">
-                <div><strong>{c.name}</strong><div className="muted">{c.city} · ★ {c.rating}</div></div>
-                <span className="badge">{c.amenities?.length ?? 0} amenities</span>
+                <div>
+                  <strong>{c.name}</strong>
+                  <div className="muted">
+                    {c.city} · ★ {c.rating}
+                    {c.profiles?.full_name ? ` · Owner: ${c.profiles.full_name}` : ''}
+                  </div>
+                </div>
+                {c.is_approved
+                  ? <span className="badge ok">Live</span>
+                  : <button className="btn btn-primary btn-sm" onClick={() => approveCentre(c.id)}>Approve</button>}
               </div>
             ))}
           </div>
@@ -165,7 +190,7 @@ export default function AdminDashboard() {
       {tab === 'plans' && (
         <div className="dash">
           <form className="card" onSubmit={addPlan}>
-            <h3 className="card-title"><Plus size={18} color="var(--lime)" /> Add a membership plan</h3>
+            <h3 className="card-title"><Plus size={18} color="#c6ff3d" /> Add a membership plan</h3>
             <div className="field"><label>Centre</label>
               <select required value={planForm.centre_id} onChange={(e) => setPlanForm({ ...planForm, centre_id: e.target.value })}>
                 <option value="">Select a centre</option>
@@ -183,11 +208,15 @@ export default function AdminDashboard() {
               <input value={planForm.features} onChange={(e) => setPlanForm({ ...planForm, features: e.target.value })} /></div>
             <button className="btn btn-primary">Save plan</button>
           </form>
+
           <div className="card">
             <h3 className="card-title">All plans</h3>
             {plans.map((p) => (
               <div key={p.id} className="list-item">
-                <div><strong>{p.name}</strong><div className="muted">{p.fitness_centres?.name} · {p.duration_days} days</div></div>
+                <div>
+                  <strong>{p.name}</strong>
+                  <div className="muted">{p.fitness_centres?.name} · {p.duration_days} days</div>
+                </div>
                 <strong>{inr(p.price_paise)}</strong>
               </div>
             ))}

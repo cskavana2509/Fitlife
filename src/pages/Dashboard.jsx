@@ -20,6 +20,7 @@ export default function Dashboard() {
     if (profile?.role === 'admin') navigate('/admin', { replace: true });
     else if (profile?.role === 'coordinator') navigate('/coordinator', { replace: true });
     else if (profile?.role === 'trainer') navigate('/trainer', { replace: true });
+    else if (profile?.role === 'centre_owner') navigate('/owner', { replace: true });
   }, [profile, navigate]);
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function Dashboard() {
   const totalSpent = orders.filter((o) => o.status === 'paid').reduce((s, o) => s + o.amount_paise, 0);
   const activeMemberships = memberships.filter((m) => new Date(m.ends_on) >= new Date()).length;
 
-  if (['admin', 'coordinator', 'trainer'].includes(profile?.role)) return null;
+  if (['admin', 'coordinator', 'trainer', 'centre_owner'].includes(profile?.role)) return null;
 
   return (
     <div className="container" style={{ paddingTop: 20 }}>
@@ -70,14 +71,14 @@ export default function Dashboard() {
       </div>
 
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginBottom: 30 }}>
-        <div className="card stat-card"><Dumbbell size={20} color="var(--lime)" /><div className="num">{activeMemberships}</div><span className="muted">Active memberships</span></div>
-        <div className="card stat-card"><UserRound size={20} color="var(--lime)" /><div className="num">{bookings.length}</div><span className="muted">Training sessions</span></div>
-        <div className="card stat-card"><Receipt size={20} color="var(--lime)" /><div className="num">{inr(totalSpent)}</div><span className="muted">Total paid</span></div>
+        <div className="card stat-card"><Dumbbell size={20} color="#c6ff3d" /><div className="num">{activeMemberships}</div><span className="muted">Active memberships</span></div>
+        <div className="card stat-card"><UserRound size={20} color="#22d3ee" /><div className="num">{bookings.length}</div><span className="muted">Training sessions</span></div>
+        <div className="card stat-card"><Receipt size={20} color="#ff4d9d" /><div className="num">{inr(totalSpent)}</div><span className="muted">Total paid</span></div>
       </div>
 
       <div className="dash">
         <div className="card">
-          <h3 className="card-title"><Dumbbell size={20} color="var(--lime)" /> Memberships</h3>
+          <h3 className="card-title"><Dumbbell size={20} color="#c6ff3d" /> Memberships</h3>
           {memberships.length === 0 ? (
             <div className="empty">No memberships yet. <Link to="/centres" style={{ color: 'var(--lime)' }}>Find a centre</Link></div>
           ) : memberships.map((m) => (
@@ -92,7 +93,7 @@ export default function Dashboard() {
         </div>
 
         <div className="card">
-          <h3 className="card-title"><UserRound size={20} color="var(--lime)" /> Training sessions</h3>
+          <h3 className="card-title"><UserRound size={20} color="#22d3ee" /> Training sessions</h3>
           {bookings.length === 0 ? (
             <div className="empty">No sessions yet. <Link to="/trainers" style={{ color: 'var(--lime)' }}>Book a trainer</Link></div>
           ) : bookings.map((b) => (
@@ -107,7 +108,7 @@ export default function Dashboard() {
         </div>
 
         <div className="card">
-          <h3 className="card-title"><CreditCard size={20} color="var(--lime)" /> Payment history</h3>
+          <h3 className="card-title"><CreditCard size={20} color="#8b5cf6" /> Payment history</h3>
           {orders.length === 0 ? <div className="empty">No payments yet.</div> : orders.map((o) => (
             <div key={o.id} className="list-item">
               <div>
@@ -123,7 +124,7 @@ export default function Dashboard() {
         </div>
 
         <form className="card" onSubmit={saveContact}>
-          <h3 className="card-title"><Phone size={20} color="var(--lime)" /> Contact details</h3>
+          <h3 className="card-title"><Phone size={20} color="#c6ff3d" /> Contact details</h3>
           <p className="muted" style={{ marginBottom: 18 }}>Used for booking confirmations by email, SMS and WhatsApp.</p>
           <div className="field"><label>Full name</label>
             <input value={contact.full_name} onChange={(e) => setContact({ ...contact, full_name: e.target.value })} /></div>
