@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { CalendarDays, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 import { startCheckout } from '../lib/payments';
 import { inr, initials, fmtDateTime } from '../lib/format';
 import Reveal from '../components/Reveal';

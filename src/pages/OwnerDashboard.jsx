@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Building2, Plus, CheckCircle2, Clock, Dumbbell } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 import { inr } from '../lib/format';
 
 const emptyCentre = { name: '', city: '', address: '', description: '', amenities: '', image_url: '' };
@@ -23,8 +23,6 @@ export default function OwnerDashboard() {
       .select('*')
       .eq('owner_id', user.id)
       .order('name');
-    setCentres(data ?? []);
-    setLoading(false);
     return data ?? [];
   }, [user.id]);
 
@@ -34,18 +32,19 @@ export default function OwnerDashboard() {
       .select('*')
       .eq('centre_id', centreId)
       .order('price_paise');
-    setPlans(data ?? []);
+    return data ?? [];
   }, []);
 
   useEffect(() => {
     loadCentres().then((list) => {
-      if (list.length) setSelected(list[0].id);
+      setCentres(list);
+      setLoading(false);
+      if (list.length) setSelected((current) => current ?? list[0].id);
     });
   }, [loadCentres]);
 
   useEffect(() => {
-    if (selected) loadPlans(selected);
-    else setPlans([]);
+    if (selected) loadPlans(selected).then(setPlans);
   }, [selected, loadPlans]);
 
   const addCentre = async (e) => {
@@ -64,7 +63,9 @@ export default function OwnerDashboard() {
     if (error) return toast.error(error.message);
     toast.success('Centre submitted. It will appear once an admin approves it.');
     setCentreForm(emptyCentre);
-    await loadCentres();
+    const updatedCentres = await loadCentres();
+    setCentres(updatedCentres);
+    setLoading(false);
     setSelected(data.id);
   };
 
@@ -81,7 +82,7 @@ export default function OwnerDashboard() {
     if (error) return toast.error(error.message);
     toast.success('Plan added');
     setPlanForm(emptyPlan);
-    loadPlans(selected);
+    loadPlans(selected).then(setPlans);
   };
 
   const current = centres.find((c) => c.id === selected);

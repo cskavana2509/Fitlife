@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Sparkles, Target, Activity, Dumbbell, Salad, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 import Reveal from '../components/Reveal';
 
 export default function Recommendations() {

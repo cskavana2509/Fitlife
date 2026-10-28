@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { CalendarPlus, Trash2, Users, ShieldCheck, Clock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 import { fmtDateTime } from '../lib/format';
 
 export default function TrainerDashboard() {
@@ -18,31 +18,42 @@ export default function TrainerDashboard() {
 
   const loadTrainer = useCallback(async () => {
     const { data } = await supabase.from('trainers').select('*').eq('profile_id', user.id).maybeSingle();
-    setTrainer(data ?? null);
+    return data ?? null;
   }, [user.id]);
 
   const loadSlots = useCallback(async (trainerId) => {
     const { data } = await supabase.from('training_slots').select('*')
       .eq('trainer_id', trainerId).order('starts_at');
-    setSlots(data ?? []);
+    return data ?? [];
   }, []);
 
   const loadBookings = useCallback(async (trainerId) => {
     const { data } = await supabase.from('bookings')
       .select('*, training_slots(starts_at, ends_at)')
       .eq('trainer_id', trainerId).order('created_at', { ascending: false });
-    setBookings(data ?? []);
+    return data ?? [];
   }, []);
 
   useEffect(() => {
-    loadTrainer();
-    supabase.from('fitness_centres').select('id, name').then(({ data }) => setCentres(data ?? []));
+    let active = true;
+    loadTrainer().then((data) => {
+      if (active) setTrainer(data);
+    });
+    supabase.from('fitness_centres').select('id, name').then(({ data }) => {
+      if (active) setCentres(data ?? []);
+    });
+    return () => { active = false; };
   }, [loadTrainer]);
 
   useEffect(() => {
     if (!trainer) return;
-    loadSlots(trainer.id);
-    loadBookings(trainer.id);
+    let active = true;
+    Promise.all([loadSlots(trainer.id), loadBookings(trainer.id)]).then(([nextSlots, nextBookings]) => {
+      if (!active) return;
+      setSlots(nextSlots);
+      setBookings(nextBookings);
+    });
+    return () => { active = false; };
   }, [trainer, loadSlots, loadBookings]);
 
   const createProfile = async (e) => {
@@ -58,7 +69,7 @@ export default function TrainerDashboard() {
     });
     if (error) return toast.error(error.message);
     toast.success('Profile submitted! An admin will approve it shortly.');
-    loadTrainer();
+    loadTrainer().then(setTrainer);
   };
 
   const addSlot = async (e) => {
@@ -71,13 +82,13 @@ export default function TrainerDashboard() {
     if (error) return toast.error(error.message);
     toast.success('Slot published');
     setSlotForm({ starts_at: '', ends_at: '' });
-    loadSlots(trainer.id);
+    loadSlots(trainer.id).then(setSlots);
   };
 
   const removeSlot = async (id) => {
     const { error } = await supabase.from('training_slots').delete().eq('id', id);
     if (error) return toast.error(error.message);
-    loadSlots(trainer.id);
+    loadSlots(trainer.id).then(setSlots);
   };
 
   if (trainer === undefined) return <div className="center-screen"><div className="spinner" /></div>;

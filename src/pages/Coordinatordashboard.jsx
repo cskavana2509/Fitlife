@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Search as SearchIcon, Dumbbell, CalendarCheck, Wallet } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { inr, fmtDateTime, fmtDate } from '../lib/format';
@@ -27,13 +27,13 @@ export default function CoordinatorDashboard() {
   }, []);
 
   const q = query.toLowerCase();
-  const matches = (text) => (text ?? '').toLowerCase().includes(q);
+  const matches = useCallback((text) => (text ?? '').toLowerCase().includes(q), [q]);
 
   const rows = useMemo(() => ({
     memberships: memberships.filter((m) => matches(m.profiles?.full_name) || matches(m.fitness_centres?.name)),
     bookings: bookings.filter((b) => matches(b.profiles?.full_name) || matches(b.training_slots?.trainers?.display_name)),
     orders: orders.filter((o) => matches(o.profiles?.full_name) || matches(o.kind)),
-  }), [memberships, bookings, orders, q]);
+  }), [memberships, bookings, orders, matches]);
 
   const revenue = orders.filter((o) => o.status === 'paid').reduce((s, o) => s + o.amount_paise, 0);
 

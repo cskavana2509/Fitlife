@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { CreditCard, Dumbbell, Phone, UserRound, Receipt } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 import { inr, fmtDateTime, fmtDate } from '../lib/format';
 
 export default function Dashboard() {
@@ -12,8 +12,12 @@ export default function Dashboard() {
   const [memberships, setMemberships] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [contact, setContact] = useState({ full_name: '', phone: '' });
+  const [contact, setContact] = useState(null);
   const [saving, setSaving] = useState(false);
+  const contactForm = contact ?? {
+    full_name: profile?.full_name ?? '',
+    phone: profile?.phone ?? '',
+  };
 
   // Staff get their own dashboards
   useEffect(() => {
@@ -22,10 +26,6 @@ export default function Dashboard() {
     else if (profile?.role === 'trainer') navigate('/trainer', { replace: true });
     else if (profile?.role === 'centre_owner') navigate('/owner', { replace: true });
   }, [profile, navigate]);
-
-  useEffect(() => {
-    if (profile) setContact({ full_name: profile.full_name ?? '', phone: profile.phone ?? '' });
-  }, [profile]);
 
   useEffect(() => {
     if (!user) return;
@@ -48,13 +48,14 @@ export default function Dashboard() {
     e.preventDefault();
     setSaving(true);
     const { error } = await supabase.from('profiles').update({
-      full_name: contact.full_name,
-      phone: contact.phone,
+      full_name: contactForm.full_name,
+      phone: contactForm.phone,
     }).eq('id', user.id);
     setSaving(false);
     if (error) return toast.error(error.message);
     toast.success('Contact details saved');
-    refreshProfile();
+    setContact(null);
+    await refreshProfile();
   };
 
   const totalSpent = orders.filter((o) => o.status === 'paid').reduce((s, o) => s + o.amount_paise, 0);
@@ -127,10 +128,10 @@ export default function Dashboard() {
           <h3 className="card-title"><Phone size={20} color="#c6ff3d" /> Contact details</h3>
           <p className="muted" style={{ marginBottom: 18 }}>Used for booking confirmations by email, SMS and WhatsApp.</p>
           <div className="field"><label>Full name</label>
-            <input value={contact.full_name} onChange={(e) => setContact({ ...contact, full_name: e.target.value })} /></div>
+            <input value={contactForm.full_name} onChange={(e) => setContact({ ...contactForm, full_name: e.target.value })} /></div>
           <div className="field"><label>Mobile number</label>
-            <input type="tel" placeholder="+919876543210" value={contact.phone}
-              onChange={(e) => setContact({ ...contact, phone: e.target.value })} /></div>
+            <input type="tel" placeholder="+919876543210" value={contactForm.phone}
+              onChange={(e) => setContact({ ...contactForm, phone: e.target.value })} /></div>
           <button className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save details'}</button>
         </form>
       </div>

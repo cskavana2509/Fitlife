@@ -103,10 +103,19 @@ export default function Auth({ mode }) {
           <label>Email</label>
           <input type="email" required value={form.email} onChange={update('email')} placeholder="you@example.com" />
         </div>
+
         <div className="field">
           <label>Password</label>
           <input type="password" required minLength={6} value={form.password} onChange={update('password')} placeholder="••••••••" />
         </div>
+
+        {!isSignup && (
+          <div style={{ textAlign: 'right', marginTop: -8, marginBottom: 14 }}>
+            <Link to="/forgot-password" style={{ color: 'var(--lime)', fontSize: '.85rem', fontWeight: 600 }}>
+              Forgot password?
+            </Link>
+          </div>
+        )}
 
         <button className="btn btn-primary btn-block" disabled={loading}>
           {loading ? 'Please wait…' : isSignup ? 'Create account' : 'Log in'}

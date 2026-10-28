@@ -12,36 +12,42 @@ const suggestions = ['Koramangala', 'Yoga', 'Strength', 'Bandra', 'Pilates', 'HI
 export default function Search() {
   const [params, setParams] = useSearchParams();
   const q = params.get('q') ?? '';
-  const [input, setInput] = useState(q);
-  const [centres, setCentres] = useState([]);
-  const [trainers, setTrainers] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => { setInput(q); }, [q]);
+  const [results, setResults] = useState({ query: '', centres: [], trainers: [] });
+  const term = clean(q);
+  const resultsAreCurrent = results.query === term;
+  const centres = resultsAreCurrent ? results.centres : [];
+  const trainers = resultsAreCurrent ? results.trainers : [];
+  const loading = Boolean(term) && !resultsAreCurrent;
 
   useEffect(() => {
-    const term = clean(q);
-    if (!term) { setCentres([]); setTrainers([]); return; }
+    const searchTerm = clean(q);
+    if (!searchTerm) return;
 
-    setLoading(true);
+    let active = true;
     Promise.all([
       supabase.from('fitness_centres').select('*')
-        .or(`name.ilike.%${term}%,city.ilike.%${term}%,address.ilike.%${term}%`)
+        .or(`name.ilike.%${searchTerm}%,city.ilike.%${searchTerm}%,address.ilike.%${searchTerm}%`)
         .limit(12),
       supabase.from('trainers').select('*, fitness_centres(name)')
         .eq('is_approved', true)
-        .or(`display_name.ilike.%${term}%,bio.ilike.%${term}%`)
+        .or(`display_name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
         .limit(12),
     ]).then(([c, t]) => {
-      setCentres(c.data ?? []);
-      setTrainers(t.data ?? []);
-      setLoading(false);
+      if (active) {
+        setResults({
+          query: searchTerm,
+          centres: c.data ?? [],
+          trainers: t.data ?? [],
+        });
+      }
     });
+    return () => { active = false; };
   }, [q]);
 
   const submit = (e) => {
     e.preventDefault();
-    setParams(input.trim() ? { q: input.trim() } : {});
+    const value = new FormData(e.currentTarget).get('q')?.toString().trim() ?? '';
+    setParams(value ? { q: value } : {});
   };
 
   const hasQuery = Boolean(clean(q));
@@ -55,11 +61,10 @@ export default function Search() {
         <p className="muted">Search centres by name, city or area, and trainers by name or specialty.</p>
       </div>
 
-      <form onSubmit={submit} className="toolbar" style={{ gap: 12 }}>
+      <form key={q} onSubmit={submit} className="toolbar" style={{ gap: 12 }}>
         <div className="search-wrap">
           <SearchIcon size={18} />
-          <input placeholder="Try “Koramangala”, “yoga” or a trainer’s name" value={input}
-            onChange={(e) => setInput(e.target.value)} />
+          <input name="q" defaultValue={q} placeholder="Try “Koramangala”, “yoga” or a trainer’s name" />
         </div>
         <button className="btn btn-primary" style={{ height: 56 }}>Search <ArrowRight size={16} /></button>
       </form>

@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/auth';
 
 const publicLinks = [
   { to: '/centres', label: 'Centres', icon: Building2 },

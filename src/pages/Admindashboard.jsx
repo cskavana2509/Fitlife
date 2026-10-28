@@ -25,8 +25,7 @@ export default function AdminDashboard() {
   const [centreForm, setCentreForm] = useState(emptyCentre);
   const [planForm, setPlanForm] = useState(emptyPlan);
 
-  const loadAll = useCallback(async () => {
-    const [t, c, p, u, o, m, b] = await Promise.all([
+  const fetchAll = useCallback(async () => Promise.all([
       supabase.from('trainers').select('*, fitness_centres(name)').order('created_at', { ascending: false }),
       supabase.from('fitness_centres').select('*, profiles(full_name)').order('name'),
       supabase.from('membership_plans').select('*, fitness_centres(name)').order('name'),
@@ -34,7 +33,9 @@ export default function AdminDashboard() {
       supabase.from('orders').select('amount_paise, status'),
       supabase.from('memberships').select('id', { count: 'exact', head: true }),
       supabase.from('bookings').select('id', { count: 'exact', head: true }),
-    ]);
+  ]), []);
+
+  const applyAll = ([t, c, p, u, o, m, b]) => {
     setTrainers(t.data ?? []);
     setCentres(c.data ?? []);
     setPlans(p.data ?? []);
@@ -45,9 +46,17 @@ export default function AdminDashboard() {
       bookings: b.count ?? 0,
       trainers: (t.data ?? []).filter((x) => x.is_approved).length,
     });
-  }, []);
+  };
 
-  useEffect(() => { loadAll(); }, [loadAll]);
+  useEffect(() => {
+    let active = true;
+    fetchAll().then((results) => {
+      if (active) applyAll(results);
+    });
+    return () => { active = false; };
+  }, [fetchAll]);
+
+  const loadAll = async () => applyAll(await fetchAll());
 
   const approve = async (id) => {
     const { error } = await supabase.from('trainers').update({ is_approved: true }).eq('id', id);
