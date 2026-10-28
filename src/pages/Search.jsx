@@ -61,12 +61,12 @@ export default function Search() {
         <p className="muted">Search centres by name, city or area, and trainers by name or specialty.</p>
       </div>
 
-      <form key={q} onSubmit={submit} className="toolbar" style={{ gap: 12 }}>
+      <form key={q} onSubmit={submit} className="toolbar" style={{ gap: 8 }}>
+        <button className="btn btn-primary" style={{ height: 56 }}>Search <ArrowRight size={16} /></button>
         <div className="search-wrap">
           <SearchIcon size={18} />
           <input name="q" defaultValue={q} placeholder="Try “Koramangala”, “yoga” or a trainer’s name" />
         </div>
-        <button className="btn btn-primary" style={{ height: 56 }}>Search <ArrowRight size={16} /></button>
       </form>
 
       {!hasQuery && (
