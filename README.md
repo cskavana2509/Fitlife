@@ -2,7 +2,7 @@
 
 **Fitness centre management and booking platform.** FitLife connects customers, fitness centres, and trainers on one platform. Customers find centres, buy memberships, book trainers, follow diet plans, and get AI-based picks. Centre owners list their gyms, trainers offer sessions, and admins and coordinators run the operation.
 
-**Live demo:** https://your-app.vercel.app
+**Live demo:** https://fitlife-ubgq.vercel.app/
 
 ---
 
