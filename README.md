@@ -39,14 +39,20 @@
 
 Payment confirmations are sent by Supabase Edge Functions. Add `RESEND_API_KEY`,
 `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, and
-`TWILIO_WHATSAPP_FROM` to the linked Supabase project with `supabase secrets set`,
-then deploy `verify-payment`, `notify`, `send-email`, `send-sms`, and
-`send-whatsapp`. Values in `.env.local` are not automatically available to
-deployed Edge Functions.
+`TWILIO_WHATSAPP_FROM` to the linked Supabase project with `supabase secrets set`.
+Create and approve a Twilio Content template for each channel, then also set
+`TWILIO_SMS_CONTENT_SID` and `TWILIO_WHATSAPP_CONTENT_SID` to their `HX...`
+Content SIDs. Each template must accept one text variable (`{{1}}`) for the
+payment confirmation message. SMS delivery to India also requires a sender and
+template approved for the applicable DLT rules. Values in `.env.local` are not
+automatically available to deployed Edge Functions.
+
+Deploy the changed functions with
+`supabase functions deploy send-sms send-whatsapp notify verify-payment`.
 
 The Resend sender must be authorized for the account. Twilio must have an active
 SMS sender, and WhatsApp recipients must have opted in (or joined the configured
-sandbox); outside WhatsApp's service window, use an approved message template.
+sandbox); use an approved WhatsApp template when required.
 
 ---
 

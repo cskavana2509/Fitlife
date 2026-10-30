@@ -19,6 +19,18 @@ const requiredEnv = (name: string) => {
   return value;
 };
 
+const twilioFailure = async (res: Response, channel: string) => {
+  const body: unknown = await res.json().catch(() => null);
+  const details = typeof body === 'object' && body !== null ? body : {};
+
+  return json({
+    ok: false,
+    error: `Twilio ${channel} returned HTTP ${res.status}`,
+    ...(typeof details === 'object' && 'code' in details ? { code: details.code } : {}),
+    ...(typeof details === 'object' && 'message' in details ? { details: details.message } : {}),
+  }, 502);
+};
+
 // Uses Twilio SMS. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_SMS_FROM.
 Deno.serve(async (req) => {
   try {
@@ -31,6 +43,7 @@ Deno.serve(async (req) => {
     const sid = requiredEnv('TWILIO_ACCOUNT_SID');
     const token = requiredEnv('TWILIO_AUTH_TOKEN');
     const from = requiredEnv('TWILIO_SMS_FROM');
+    const contentSid = requiredEnv('TWILIO_SMS_CONTENT_SID');
 
     const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
       method: 'POST',
@@ -41,14 +54,13 @@ Deno.serve(async (req) => {
       body: new URLSearchParams({
         To: e164(to_phone),
         From: from,
-        Body: message,
+        ContentSid: contentSid,
+        ContentVariables: JSON.stringify({ '1': message }),
       }),
     });
 
-    return json(
-      { ok: res.ok, ...(!res.ok ? { error: `Twilio SMS returned HTTP ${res.status}` } : {}) },
-      res.ok ? 200 : 502,
-    );
+    if (!res.ok) return await twilioFailure(res, 'SMS');
+    return json({ ok: true });
   } catch (e) {
     return json({ error: String(e) }, 500);
   }
