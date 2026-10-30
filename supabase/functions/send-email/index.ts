@@ -6,11 +6,17 @@ Deno.serve(async (req) => {
   try {
     const { to_email, subject, message } = await req.json();
     if (!to_email) return json({ skipped: 'no email' });
+    if (typeof to_email !== 'string' || typeof message !== 'string' || !message.trim()) {
+      return json({ error: 'A valid email address and message are required' }, 400);
+    }
+
+    const apiKey = Deno.env.get('RESEND_API_KEY');
+    if (!apiKey) return json({ error: 'RESEND_API_KEY is not configured' }, 500);
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -24,7 +30,10 @@ Deno.serve(async (req) => {
       }),
     });
 
-    return json({ ok: res.ok }, res.ok ? 200 : 502);
+    return json(
+      { ok: res.ok, ...(!res.ok ? { error: `Resend returned HTTP ${res.status}` } : {}) },
+      res.ok ? 200 : 502,
+    );
   } catch (e) {
     return json({ error: String(e) }, 500);
   }

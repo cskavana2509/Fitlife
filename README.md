@@ -35,6 +35,19 @@
 - **Notifications:** Resend (email), Twilio (SMS and WhatsApp)
 - **Hosting:** Vercel (frontend), Supabase (backend)
 
+## Notification setup
+
+Payment confirmations are sent by Supabase Edge Functions. Add `RESEND_API_KEY`,
+`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_SMS_FROM`, and
+`TWILIO_WHATSAPP_FROM` to the linked Supabase project with `supabase secrets set`,
+then deploy `verify-payment`, `notify`, `send-email`, `send-sms`, and
+`send-whatsapp`. Values in `.env.local` are not automatically available to
+deployed Edge Functions.
+
+The Resend sender must be authorized for the account. Twilio must have an active
+SMS sender, and WhatsApp recipients must have opted in (or joined the configured
+sandbox); outside WhatsApp's service window, use an approved message template.
+
 ---
 
 ## Project structure
