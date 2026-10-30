@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
     const service = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const keySecret = Deno.env.get('RAZORPAY_KEY_SECRET')!;
 
+    // 0. Only logged-in users can verify a payment
     const userClient = createClient(url, anon, {
       global: { headers: { Authorization: req.headers.get('Authorization') ?? '' } },
     });
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
 
-    // 1. Verify Razorpay signature (HMAC-SHA256 of "order_id|payment_id")
+    // 1. Recreate the Razorpay signature and compare it (HMAC-SHA256 of "order_id|payment_id")
     const enc = new TextEncoder();
     const key = await crypto.subtle.importKey(
       'raw', enc.encode(keySecret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
@@ -46,7 +47,7 @@ Deno.serve(async (req) => {
     if (!order) return json({ error: 'Order not found' }, 404);
     if (order.status === 'paid') return json({ ok: true, already: true });
 
-    // 3. Fulfil the order
+    // 3. Give the customer what they paid for
     if (order.kind === 'membership') {
       const { data: plan } = await admin.from('membership_plans').select('*').eq('id', order.item_id).single();
       const ends = new Date();
@@ -58,7 +59,7 @@ Deno.serve(async (req) => {
         ends_on: ends.toISOString().slice(0, 10),
       });
     } else {
-      // Atomic: only succeeds if the slot is still free
+      // Only succeeds if the slot is still free
       const { data: slot, error } = await admin
         .from('training_slots').update({ is_booked: true })
         .eq('id', order.item_id).eq('is_booked', false)
@@ -71,19 +72,26 @@ Deno.serve(async (req) => {
       });
     }
 
+    // 4. Mark the order as paid
     await admin.from('orders')
       .update({ status: 'paid', razorpay_payment_id })
       .eq('id', order.id);
 
-    // 4. Send confirmations. Failures here must not undo a successful payment.
+    // 5. Send confirmations (email, SMS, WhatsApp).
+    //    A notification failure must never undo the payment.
     try {
-      await fetch(`${url}/functions/v1/notify`, {
+      const notifyRes = await fetch(`${url}/functions/v1/notify`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${service}`, 'Content-Type': 'application/json' },
+        headers: {
+          Authorization: `Bearer ${service}`,
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ order_id: order.id }),
       });
+      const notifyBody = await notifyRes.text();
+      console.log(`notify called: status=${notifyRes.status} body=${notifyBody}`);
     } catch (e) {
-      console.error('notify failed', e);
+      console.error('notify call failed:', String(e));
     }
 
     return json({ ok: true });
